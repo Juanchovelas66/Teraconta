@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERACONTA Mobile App v1.3.0 (QR)</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        @media (min-width: 768px) {
+            body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        }
+        /* Estilos para QR Scanner */
+        #qr-reader { width: 100%; max-width: 500px; margin: 0 auto; }
+        #qr-reader__scan_region { border: 3px solid #3b82f6 !important; border-radius: 8px; }
+        #qr-reader__dashboard_section_csr { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Componentes de iconos SVG simples
+        const Home = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        );
+        
+        const BarChart2 = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        );
+        
+        const List = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        );
+        
+        const Clock = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+        
+        const Play = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+        
+        const Square = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+          </svg>
+        );
+        
+        const ArrowLeft = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        );
+        
+        const CheckCircle = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+        
+        const AlertCircle = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+        
+        const Coffee = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+          </svg>
+        );
+        
+        const User = ({className}) => (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        );
+
+
+// ==================== DATOS DEL SISTEMA ====================
+
+// Disciplinas (sincronizado con panel admin)
+const DISCIPLINAS = [
+  { 
+    id: 1, 
+    nombre: 'Obra Estructural', 
+    descripcion: 'Trabajos de estructura y cimentación', 
+    esProductiva: true,
+    emoji: '🏗️',
+    color: 'blue'
+  },
+  { 
+    id: 2, 
+    nombre: 'Albañilería', 
+    descripcion: 'Levante de muros y acabados', 
+    esProductiva: true,
+    emoji: '🧱',
+    color: 'orange'
+  },
+  { 
+    id: 3, 
+    nombre: 'Electricidad', 
+    descripcion: 'Instalaciones eléctricas', 
+    esProductiva: true,
+    emoji: '⚡',
+    color: 'yellow'
+  },
+  { 
+    id: 4, 
+    nombre: 'Plomería', 
+    descripcion: 'Redes hidráulicas y sanitarias', 
+    esProductiva: true,
+    emoji: '🚰',
+    color: 'cyan'
+  },
+  { 
+    id: 5, 
+    nombre: 'Pintura', 
+    descripcion: 'Preparación y pintura', 
+    esProductiva: true,
+    emoji: '🎨',
+    color: 'pink'
+  },
+  { 
+    id: 6, 
+    nombre: 'Esperas', 
+    descripcion: 'Tiempo de espera improductivo', 
+    esProductiva: false,
+    emoji: '⏳',
+    color: 'red'
+  },
+  { 
+    id: 7, 
+    nombre: 'Permisos', 
+    descripcion: 'Permisos y ausencias autorizadas', 
+    esProductiva: false,
+    emoji: '🚪',
+    color: 'purple'
+  }
+];
+
+// Tareas (sincronizado con panel admin)
+const TAREAS = [
+  // Obra Estructural
+  { id: 1, nombre: 'Excavación', disciplinaId: 1, emoji: '⛏️' },
+  { id: 2, nombre: 'Cimentación', disciplinaId: 1, emoji: '🏛️' },
+  { id: 3, nombre: 'Columnas', disciplinaId: 1, emoji: '🔨' },
+  { id: 4, nombre: 'Vigas', disciplinaId: 1, emoji: '⚒️' },
+  
+  // Albañilería
+  { id: 5, nombre: 'Levante de muros', disciplinaId: 2, emoji: '🧱' },
+  { id: 6, nombre: 'Pañete', disciplinaId: 2, emoji: '🔧' },
+  { id: 7, nombre: 'Enchape', disciplinaId: 2, emoji: '⬜' },
+  { id: 8, nombre: 'Pisos', disciplinaId: 2, emoji: '🔲' },
+  
+  // Electricidad
+  { id: 9, nombre: 'Canalización', disciplinaId: 3, emoji: '🔌' },
+  { id: 10, nombre: 'Cableado', disciplinaId: 3, emoji: '🔋' },
+  { id: 11, nombre: 'Tableros', disciplinaId: 3, emoji: '📊' },
+  { id: 12, nombre: 'Luminarias', disciplinaId: 3, emoji: '💡' },
+  
+  // Plomería
+  { id: 13, nombre: 'Redes hidráulicas', disciplinaId: 4, emoji: '💧' },
+  { id: 14, nombre: 'Redes sanitarias', disciplinaId: 4, emoji: '🚽' },
+  { id: 15, nombre: 'Aparatos sanitarios', disciplinaId: 4, emoji: '🚿' },
+  { id: 16, nombre: 'Grifería', disciplinaId: 4, emoji: '🔩' },
+  
+  // Pintura
+  { id: 17, nombre: 'Preparación de superficie', disciplinaId: 5, emoji: '🔨' },
+  { id: 18, nombre: 'Pintura base', disciplinaId: 5, emoji: '🖌️' },
+  { id: 19, nombre: 'Pintura acabado', disciplinaId: 5, emoji: '🎨' },
+  { id: 20, nombre: 'Retoques', disciplinaId: 5, emoji: '✨' },
+  
+  // Esperas (improductivas)
+  { id: 21, nombre: 'Espera de material', disciplinaId: 6, emoji: '📦' },
+  { id: 22, nombre: 'Espera de equipo', disciplinaId: 6, emoji: '🚜' },
+  { id: 23, nombre: 'Espera de instrucciones', disciplinaId: 6, emoji: '📋' },
+  { id: 24, nombre: 'Clima adverso', disciplinaId: 6, emoji: '🌧️' },
+  
+  // Permisos (improductivos)
+  { id: 25, nombre: 'Permiso médico', disciplinaId: 7, emoji: '🏥' },
+  { id: 26, nombre: 'Permiso personal', disciplinaId: 7, emoji: '👤' },
+  { id: 27, nombre: 'Permiso familiar', disciplinaId: 7, emoji: '👨‍👩‍👧' },
+  { id: 28, nombre: 'Capacitación', disciplinaId: 7, emoji: '📚' }
+];
+
+// Subtareas (sincronizado con panel admin)
+const SUBTAREAS = [
+  // Excavación
+  { id: 1, nombre: 'Replanteo', tareaId: 1, emoji: '📐', nivelOptimo: 2 },
+  { id: 2, nombre: 'Excavación manual', tareaId: 1, emoji: '⛏️', nivelOptimo: 1 },
+  { id: 3, nombre: 'Excavación mecánica', tareaId: 1, emoji: '🚜', nivelOptimo: 3 },
+  { id: 4, nombre: 'Retiro de material', tareaId: 1, emoji: '🚛', nivelOptimo: 1 },
+  
+  // Cimentación
+  { id: 5, nombre: 'Armado de hierro', tareaId: 2, emoji: '🔗', nivelOptimo: 3 },
+  { id: 6, nombre: 'Formaleta', tareaId: 2, emoji: '📦', nivelOptimo: 3 },
+  { id: 7, nombre: 'Fundida', tareaId: 2, emoji: '🧱', nivelOptimo: 4 },
+  { id: 8, nombre: 'Desencofrado', tareaId: 2, emoji: '🔨', nivelOptimo: 2 },
+  
+  // Columnas
+  { id: 9, nombre: 'Armado de acero', tareaId: 3, emoji: '⚒️', nivelOptimo: 3 },
+  { id: 10, nombre: 'Encofrado', tareaId: 3, emoji: '📏', nivelOptimo: 3 },
+  { id: 11, nombre: 'Vaciado de concreto', tareaId: 3, emoji: '🏗️', nivelOptimo: 4 },
+  { id: 12, nombre: 'Desencofrado', tareaId: 3, emoji: '🔧', nivelOptimo: 2 },
+  
+  // Vigas
+  { id: 13, nombre: 'Corte de acero', tareaId: 4, emoji: '✂️', nivelOptimo: 3 },
+  { id: 14, nombre: 'Doblado de varillas', tareaId: 4, emoji: '🔧', nivelOptimo: 3 },
+  { id: 15, nombre: 'Amarre de acero', tareaId: 4, emoji: '🔗', nivelOptimo: 3 },
+  { id: 16, nombre: 'Verificación de planos', tareaId: 4, emoji: '📐', nivelOptimo: 4 },
+  
+  // Levante de muros
+  { id: 17, nombre: 'Trazado', tareaId: 5, emoji: '📏', nivelOptimo: 2 },
+  { id: 18, nombre: 'Pega de bloque', tareaId: 5, emoji: '🧱', nivelOptimo: 3 },
+  { id: 19, nombre: 'Nivelación', tareaId: 5, emoji: '📐', nivelOptimo: 3 },
+  { id: 20, nombre: 'Limpieza', tareaId: 5, emoji: '🧹', nivelOptimo: 1 },
+  
+  // Pañete
+  { id: 21, nombre: 'Preparación de mezcla', tareaId: 6, emoji: '🔄', nivelOptimo: 2 },
+  { id: 22, nombre: 'Aplicación', tareaId: 6, emoji: '🧽', nivelOptimo: 4 },
+  { id: 23, nombre: 'Alisado', tareaId: 6, emoji: '✨', nivelOptimo: 4 },
+  { id: 24, nombre: 'Curado', tareaId: 6, emoji: '💧', nivelOptimo: 2 },
+  
+  // Redes hidráulicas
+  { id: 25, nombre: 'Trazado de redes', tareaId: 13, emoji: '📐', nivelOptimo: 3 },
+  { id: 26, nombre: 'Instalación de tubería', tareaId: 13, emoji: '🔧', nivelOptimo: 3 },
+  { id: 27, nombre: 'Prueba hidrostática', tareaId: 13, emoji: '💧', nivelOptimo: 4 },
+  { id: 28, nombre: 'Conexiones', tareaId: 13, emoji: '🔩', nivelOptimo: 3 },
+  
+  // Preparación de superficie
+  { id: 29, nombre: 'Resane', tareaId: 17, emoji: '🔨', nivelOptimo: 2 },
+  { id: 30, nombre: 'Lijado', tareaId: 17, emoji: '📄' },
+  { id: 31, nombre: 'Limpieza', tareaId: 17, emoji: '🧹' },
+  { id: 32, nombre: 'Imprimación', tareaId: 17, emoji: '🖌️' },
+  
+  // Pintura base
+  { id: 33, nombre: 'Primera mano', tareaId: 18, emoji: '🎨' },
+  { id: 34, nombre: 'Secado', tareaId: 18, emoji: '⏱️' },
+  { id: 35, nombre: 'Segunda mano', tareaId: 18, emoji: '🖌️' },
+  { id: 36, nombre: 'Inspección', tareaId: 18, emoji: '👁️' },
+  
+  // Pintura acabado
+  { id: 37, nombre: 'Primera mano acabado', tareaId: 19, emoji: '🎨' },
+  { id: 38, nombre: 'Segunda mano acabado', tareaId: 19, emoji: '✨' },
+  { id: 39, nombre: 'Retoques finales', tareaId: 19, emoji: '🔍' },
+  { id: 40, nombre: 'Limpieza final', tareaId: 19, emoji: '🧹' }
+];
+
+// Base de datos mock de usuarios con credenciales
+const USUARIOS_DB = [
+  // Trabajadores
+  { 
+    usuario: 'carlos', 
+    password: '1234', 
+    perfil: { id: 1, nombre: 'Carlos Ramírez', tipo: 'Peón', rol: 'trabajador', avatar: '👷' }
+  },
+  { 
+    usuario: 'jorge', 
+    password: '1234', 
+    perfil: { id: 2, nombre: 'Jorge Martínez', tipo: 'Ayudante', rol: 'trabajador', avatar: '👨‍🔧' }
+  },
+  { 
+    usuario: 'andres', 
+    password: '1234', 
+    perfil: { id: 3, nombre: 'Andrés García', tipo: 'Operario', rol: 'trabajador', avatar: '👨‍🏭' }
+  },
+  // Supervisores
+  { 
+    usuario: 'miguel', 
+    password: '1234', 
+    perfil: { id: 4, nombre: 'Miguel Torres', tipo: 'Supervisor', rol: 'supervisor', avatar: '👨‍💼' }
+  },
+  { 
+    usuario: 'laura', 
+    password: '1234', 
+    perfil: { id: 5, nombre: 'Laura Pérez', tipo: 'Supervisora', rol: 'supervisor', avatar: '👩‍💼' }
+  }
+];
+
+// Trabajadores de prueba (para referencia, ya no se usa en login)
+const TRABAJADORES = [
+  { id: 1, nombre: 'Carlos Ramírez', tipo: 'Peón', rol: 'trabajador', avatar: '👷' },
+  { id: 2, nombre: 'Jorge Martínez', tipo: 'Ayudante', rol: 'trabajador', avatar: '👨‍🔧' },
+  { id: 3, nombre: 'Andrés García', tipo: 'Operario', rol: 'trabajador', avatar: '👨‍🏭' },
+  { id: 4, nombre: 'Miguel Torres', tipo: 'Supervisor', rol: 'supervisor', avatar: '👨‍💼' },
+  { id: 5, nombre: 'Laura Pérez', tipo: 'Supervisora', rol: 'supervisor', avatar: '👩‍💼' }
+];
+
+// Lista de trabajadores para que el supervisor seleccione
+const TRABAJADORES_CAMPO = [
+  { id: 1, nombre: 'Carlos Ramírez', tipo: 'Peón', avatar: '👷' },
+  { id: 2, nombre: 'Jorge Martínez', tipo: 'Ayudante', avatar: '👨‍🔧' },
+  { id: 3, nombre: 'Andrés García', tipo: 'Operario', avatar: '👨‍🏭' },
+  { id: 6, nombre: 'Pedro López', tipo: 'Peón', avatar: '👷‍♂️' },
+  { id: 7, nombre: 'Juan Díaz', tipo: 'Ayudante', avatar: '👨‍🔧' },
+  { id: 8, nombre: 'Roberto Sánchez', tipo: 'Operario', avatar: '👨‍🏭' },
+  { id: 9, nombre: 'Luis Morales', tipo: 'Peón', avatar: '👷' },
+  { id: 10, nombre: 'Diego Castro', tipo: 'Ayudante', avatar: '👨‍🔧' }
+];
+
+
+// ==================== CONFIGURACIÓN DE UBICACIONES (v1.2.0) ====================
+
+// Configuración de ubicaciones por proyecto
+const UBICACIONES_CONFIG = {
+  1: { // Proyecto: Edificio Torres del Parque
+    activo: true,
+    metodo: 'manual', // 'manual' | 'qr' (futuro)
+    nivel1: {
+      nombre: 'Torre',
+      opciones: ['Torre Norte', 'Torre Sur']
+    },
+    nivel2: {
+      nombre: 'Piso',
+      opciones: Array.from({length: 20}, (_, i) => `Piso ${i + 1}`)
+    },
+    nivel3: {
+      nombre: 'Apartamento',
+      opciones: ['Apt 01', 'Apt 02', 'Apt 03', 'Apt 04', 'Apt 05', 'Apt 06']
+    }
+  }
+};
+
+// Verificar si proyecto tiene ubicaciones activas
+const proyectoTieneUbicaciones = (proyectoId) => {
+  return UBICACIONES_CONFIG[proyectoId]?.activo || false;
+};
+
+// Obtener configuración de ubicaciones
+const getUbicacionesConfig = (proyectoId) => {
+  return UBICACIONES_CONFIG[proyectoId] || null;
+};
+
+// ==================== MAPEO DE NIVELES (v1.2.0) ====================
+
+// Niveles de experiencia
+const NIVELES = {
+  1: { nombre: 'Peón', descripcion: 'Trabajos básicos' },
+  2: { nombre: 'Ayudante', descripcion: 'Asistencia en tareas' },
+  3: { nombre: 'Operario', descripcion: 'Construcción general' },
+  4: { nombre: 'Oficial', descripcion: 'Trabajos especializados' },
+  5: { nombre: 'Maestro', descripcion: 'Supervisión y control' }
+};
+
+// Mapeo de tipos de trabajador a nivel numérico
+const TIPO_A_NIVEL = {
+  'Peón': 1,
+  'Ayudante': 2,
+  'Operario': 3,
+  'Oficial': 4,
+  'Maestro': 5,
+  'Supervisor': 5,
+  'Supervisora': 5
+};
+
+
+// ==================== UTILIDADES ====================
+
+const formatTime = (seconds) => {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+const formatDuration = (seconds) => {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+const getColorClasses = (color) => {
+  const colors = {
+    blue: 'from-blue-500 to-blue-600',
+    orange: 'from-orange-500 to-orange-600',
+    yellow: 'from-yellow-500 to-yellow-600',
+    cyan: 'from-cyan-500 to-cyan-600',
+    pink: 'from-pink-500 to-pink-600',
+    red: 'from-red-500 to-red-600',
+    purple: 'from-purple-500 to-purple-600',
+    green: 'from-green-500 to-green-600',
+    gray: 'from-gray-500 to-gray-600'
+  };
+  return colors[color] || colors.blue;
+};
+
+// ==================== COMPONENTE PRINCIPAL ====================
+
+function TeracontaMobileApp() {
+  // Estados de navegación
+  const [currentScreen, setCurrentScreen] = useState('login');
+  const [bottomNav, setBottomNav] = useState('home');
+  
+  // Estados de usuario
+  const [currentUser, setCurrentUser] = useState(null);
+  const [selectedWorker, setSelectedWorker] = useState(null); // Para supervisores
+  const [dbConnected, setDbConnected] = useState(true);
+  
+  // Proyecto actual (mock - en futuro será seleccionable)
+  const [currentProject] = useState({
+    id: 1,
+    nombre: 'Edificio Torres del Parque',
+    cliente: 'Constructora ABC'
+  });
+  
+  // Estados de login - ahora usando refs para evitar problemas de re-rendering
+  const usuarioRef = React.useRef(null);
+  const passwordRef = React.useRef(null);
+  const [loginRecordarme, setLoginRecordarme] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  
+  // Estados de navegación de tareas
+  const [selectedDisciplina, setSelectedDisciplina] = useState(null);
+  const [selectedTarea, setSelectedTarea] = useState(null);
+  const [selectedSubtarea, setSelectedSubtarea] = useState(null);
+  
+  // ⭐ NUEVOS ESTADOS v1.2.0 - Ubicaciones
+  const [selectedUbicacion, setSelectedUbicacion] = useState({
+    nivel1: null,
+    nivel2: null,
+    nivel3: null
+  });
+  
+  // ⭐ NUEVOS ESTADOS v1.3.0 - QR Scanner
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrScanner, setQrScanner] = useState(null);
+  const [qrScanSuccess, setQrScanSuccess] = useState(null);
+  
+  const [showAlertaSubutilizacion, setShowAlertaSubutilizacion] = useState(false);
+
+  
+  // Estados de cronómetro
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [currentTask, setCurrentTask] = useState(null);
+  
+  // Estados de registros
+  const [taskRecords, setTaskRecords] = useState([]);
+  
+  // Efecto del cronómetro
+  useEffect(() => {
+    let interval;
+    if (timerRunning) {
+      interval = setInterval(() => {
+        setElapsedSeconds(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerRunning]);
+  
+  // Calcular estadísticas
+  const getStats = () => {
+    const totalSeconds = taskRecords.reduce((sum, record) => sum + record.duration, 0);
+    const productivoSeconds = taskRecords
+      .filter(record => record.esProductiva)
+      .reduce((sum, record) => sum + record.duration, 0);
+    const improductivoSeconds = totalSeconds - productivoSeconds;
+    
+    const esperasSeconds = taskRecords
+      .filter(record => record.disciplinaId === 6)
+      .reduce((sum, record) => sum + record.duration, 0);
+    
+    const permisosSeconds = taskRecords
+      .filter(record => record.disciplinaId === 7)
+      .reduce((sum, record) => sum + record.duration, 0);
+    
+    const sinTareasSeconds = taskRecords
+      .filter(record => record.isSinTareas)
+      .reduce((sum, record) => sum + record.duration, 0);
+    
+    const productividadPct = totalSeconds > 0 
+      ? Math.round((productivoSeconds / totalSeconds) * 100) 
+      : 0;
+    
+    return {
+      totalSeconds,
+      productivoSeconds,
+      improductivoSeconds,
+      esperasSeconds,
+      permisosSeconds,
+      sinTareasSeconds,
+      productividadPct
+    };
+  };
+  
+  // ==================== FUNCIONES DE NAVEGACIÓN ====================
+  
+  const handleLogin = (e) => {
+    console.log('handleLogin called'); // Debug
+    
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+    }
+    
+    setLoginError('');
+    
+    // Obtener valores de los refs con validación extra
+    const usuario = (usuarioRef.current && usuarioRef.current.value) ? usuarioRef.current.value.trim() : '';
+    const password = (passwordRef.current && passwordRef.current.value) ? passwordRef.current.value.trim() : '';
+    
+    console.log('Usuario:', usuario, 'Password:', password ? '****' : '(vacío)'); // Debug
+    
+    // Validar que los campos no estén vacíos
+    if (!usuario || !password) {
+      setLoginError('Por favor ingresa usuario y contraseña');
+      console.log('Campos vacíos'); // Debug
+      return false;
+    }
+    
+    // Buscar usuario en la base de datos mock
+    const usuarioEncontrado = USUARIOS_DB.find(
+      u => u.usuario.toLowerCase() === usuario.toLowerCase() && 
+           u.password === password
+    );
+    
+    console.log('Usuario encontrado:', usuarioEncontrado ? 'SI' : 'NO'); // Debug
+    
+    if (!usuarioEncontrado) {
+      setLoginError('Usuario o contraseña incorrectos');
+      return false;
+    }
+    
+    // Login exitoso
+    const trabajador = usuarioEncontrado.perfil;
+    console.log('Login exitoso para:', trabajador.nombre); // Debug
+    setCurrentUser(trabajador);
+    
+    // Limpiar campos
+    if (usuarioRef.current) usuarioRef.current.value = '';
+    if (passwordRef.current) passwordRef.current.value = '';
+    setLoginError('');
+    
+    // Si es supervisor, va a selección de trabajadores
+    if (trabajador.rol === 'supervisor') {
+      console.log('Navegando a selección de trabajadores'); // Debug
+      setCurrentScreen('seleccion-trabajadores');
+    } else {
+      // Si es trabajador (peón, ayudante, operario), va directo a disciplinas
+      console.log('Navegando a disciplinas'); // Debug
+      setSelectedWorker(trabajador); // Se selecciona a sí mismo
+      setCurrentScreen('disciplinas');
+      setBottomNav('home');
+    }
+    
+    return false;
+  };
+  
+  const handleSelectWorker = (trabajador) => {
+    setSelectedWorker(trabajador);
+    setCurrentScreen('disciplinas');
+    setBottomNav('home');
+  };
+  
+  const handleSelectDisciplina = (disciplina) => {
+    setSelectedDisciplina(disciplina);
+    setCurrentScreen('tareas');
+  };
+  
+  const handleSelectTarea = (tarea) => {
+    setSelectedTarea(tarea);
+    
+    // Verificar si la tarea tiene subtareas
+    const tieneSubtareas = SUBTAREAS.some(sub => sub.tareaId === tarea.id);
+    
+    // Las disciplinas improductivas (Esperas, Permisos) no tienen subtareas
+    const disciplina = DISCIPLINAS.find(d => d.id === tarea.disciplinaId);
+    
+    if (tieneSubtareas && disciplina.esProductiva) {
+      setCurrentScreen('subtareas');
+    } else {
+      // Ir directamente al cronómetro
+      setSelectedSubtarea(null);
+      setCurrentTask({
+        disciplina: disciplina,
+        tarea: tarea,
+        subtarea: null
+      });
+      setCurrentScreen('cronometro');
+      setElapsedSeconds(0);
+    }
+  };
+  
+  const handleSelectSubtarea = (subtarea) => {
+    setSelectedSubtarea(subtarea);
+    
+    // ⭐ v1.2.1 - VERIFICAR NIVEL ÓPTIMO DE LA SUBTAREA
+    const trabajadorActual = selectedWorker || currentUser.perfil;
+    const nivelTrabajador = TIPO_A_NIVEL[trabajadorActual.tipo] || 1;
+    const nivelSubtarea = subtarea.nivelOptimo || 1;
+    
+    console.log('🔍 Verificando nivel al seleccionar subtarea:');
+    console.log('  - Trabajador:', trabajadorActual.tipo, '(Nivel', nivelTrabajador + ')');
+    console.log('  - Subtarea:', subtarea.nombre, '(Nivel óptimo', nivelSubtarea + ')');
+    
+    if (nivelTrabajador > nivelSubtarea) {
+      const diferencia = nivelTrabajador - nivelSubtarea;
+      const nivelRequerido = NIVELES[nivelSubtarea].nombre;
+      
+      console.log('⚠️ ALERTA: Trabajador sobrecalificado por', diferencia, 'niveles');
+      
+      setShowAlertaSubutilizacion({
+        mostrar: true,
+        mensaje: `⚠️ Estás sobrecalificado para esta subtarea`,
+        detalle: `Eres ${trabajadorActual.tipo} (Nivel ${nivelTrabajador}) pero esta subtarea requiere nivel ${nivelRequerido} (Nivel ${nivelSubtarea}). Esto genera sobrecostos.`,
+        diferencia: diferencia
+      });
+    } else {
+      console.log('✅ Nivel apropiado para la subtarea');
+      setShowAlertaSubutilizacion({ mostrar: false });
+    }
+    
+    // Verificar si el proyecto tiene ubicaciones activas
+    if (proyectoTieneUbicaciones(currentProject.id)) {
+      setCurrentScreen('ubicacion'); // ⭐ Ir a pantalla de ubicaciones
+    } else {
+      // Si no tiene ubicaciones, ir directo al cronómetro
+      const disciplina = DISCIPLINAS.find(d => d.id === selectedTarea.disciplinaId);
+      setCurrentTask({
+        disciplina: disciplina,
+        tarea: selectedTarea,
+        subtarea: subtarea
+      });
+      setCurrentScreen('cronometro');
+      setElapsedSeconds(0);
+    }
+  };
+  
+  const handleStartTask = () => {
+    const startTime = Date.now();
+    
+    // Detectar gap (sin tareas) - ahora con threshold de 1 segundo
+    if (taskRecords.length > 0) {
+      const lastRecord = taskRecords[taskRecords.length - 1];
+      const lastEndTime = lastRecord.endTime;
+      const gapSeconds = Math.floor((startTime - lastEndTime) / 1000);
+      
+      // Si hay un gap mayor a 1 segundo, crear registro de "Sin tareas"
+      if (gapSeconds > 1) {
+        const sinTareasRecord = {
+          id: Date.now() - 1000,
+          trabajadorId: selectedWorker.id,
+          trabajadorNombre: selectedWorker.nombre,
+          trabajadorTipo: selectedWorker.tipo,
+          registradoPor: currentUser.id,
+          registradoPorNombre: currentUser.nombre,
+          disciplinaId: null,
+          disciplinaNombre: 'Sin Tareas',
+          disciplinaEmoji: '⏸️',
+          tareaNombre: 'Sin tareas asignadas',
+          subtareaNombre: null,
+          esProductiva: false,
+          isSinTareas: true,
+          startTime: lastEndTime,
+          endTime: startTime,
+          duration: gapSeconds,
+          timestamp: new Date(lastEndTime).toLocaleString('es-CO')
+        };
+        setTaskRecords(prev => [...prev, sinTareasRecord]);
+      }
+    }
+    
+    // Guardar el tiempo de inicio
+    setCurrentTask(prev => ({
+      ...prev,
+      startTime: startTime
+    }));
+    
+    // Resetear el cronómetro y comenzar
+    setElapsedSeconds(0);
+    setTimerRunning(true);
+  };
+  
+  const handleFinishTask = () => {
+    setTimerRunning(false);
+    
+    const endTime = Date.now();
+    const actualDuration = Math.floor((endTime - currentTask.startTime) / 1000);
+    
+    // Asegurar que la duración sea al menos 1 segundo si el timer estaba corriendo
+    const finalDuration = actualDuration >= 1 ? actualDuration : Math.max(elapsedSeconds, 1);
+    
+    const record = {
+      id: Date.now(),
+      trabajadorId: selectedWorker.id,
+      trabajadorNombre: selectedWorker.nombre,
+      trabajadorTipo: selectedWorker.tipo,
+      registradoPor: currentUser.id,
+      registradoPorNombre: currentUser.nombre,
+      disciplinaId: currentTask.disciplina.id,
+      disciplinaNombre: currentTask.disciplina.nombre,
+      disciplinaEmoji: currentTask.disciplina.emoji,
+      tareaNombre: currentTask.tarea.nombre,
+      subtareaNombre: currentTask.subtarea?.nombre || null,
+      ubicacion: currentTask.ubicacion || null, // ⭐ v1.2.0 - Incluir ubicación
+      esProductiva: currentTask.disciplina.esProductiva,
+      isSinTareas: false,
+      startTime: currentTask.startTime,
+      endTime: endTime,
+      duration: finalDuration,
+      timestamp: new Date().toLocaleString('es-CO')
+    };
+    
+    setTaskRecords(prev => [...prev, record]);
+    
+    // Simular guardado en DB
+    setTimeout(() => {
+      // Volver a home
+      setCurrentScreen('disciplinas');
+      setBottomNav('home');
+      setSelectedDisciplina(null);
+      setSelectedTarea(null);
+      setSelectedSubtarea(null);
+      setSelectedUbicacion({ nivel1: null, nivel2: null, nivel3: null }); // ⭐ v1.2.0
+      setShowAlertaSubutilizacion(false); // ⭐ v1.2.0
+      setCurrentTask(null);
+      setElapsedSeconds(0);
+    }, 500);
+  };
+  
+  const handleBottomNav = (nav) => {
+    setBottomNav(nav);
+    if (nav === 'home') {
+      setCurrentScreen('disciplinas');
+    } else if (nav === 'resumen') {
+      setCurrentScreen('resumen');
+    } else if (nav === 'lista') {
+      setCurrentScreen('lista');
+    }
+  };
+  
+  const handleBack = () => {
+    if (currentScreen === 'tareas') {
+      setCurrentScreen('disciplinas');
+      setSelectedDisciplina(null);
+    } else if (currentScreen === 'subtareas') {
+      setCurrentScreen('tareas');
+      setSelectedSubtarea(null);
+    } else if (currentScreen === 'ubicacion') { // ⭐ v1.2.0
+      setCurrentScreen('subtareas');
+      setSelectedUbicacion({ nivel1: null, nivel2: null, nivel3: null });
+    } else if (currentScreen === 'cronometro') {
+      // ⭐ v1.2.0 - Volver a ubicación si tiene ubicaciones
+      if (proyectoTieneUbicaciones(currentProject.id)) {
+        setCurrentScreen('ubicacion');
+      } else if (selectedSubtarea) {
+        setCurrentScreen('subtareas');
+      } else {
+        setCurrentScreen('tareas');
+      }
+      setCurrentTask(null);
+      setElapsedSeconds(0);
+      setTimerRunning(false);
+      setShowAlertaSubutilizacion(false); // ⭐ v1.2.0
+    }
+  };
+  
+  
+  
+  // ⭐ v1.2.0 - Verificar subutilización
+  const verificarSubutilizacion = () => {
+    const tareaSeleccionada = selectedTarea;
+    const nivelTarea = tareaSeleccionada.nivelMinimo || 1;
+    
+    const trabajadorActual = selectedWorker || currentUser.perfil;
+    const nivelTrabajador = TIPO_A_NIVEL[trabajadorActual.tipo] || 1;
+    
+    if (nivelTrabajador > nivelTarea) {
+      const diferencia = nivelTrabajador - nivelTarea;
+      const nivelRequerido = NIVELES[nivelTarea].nombre;
+      
+      setShowAlertaSubutilizacion({
+        mostrar: true,
+        mensaje: `⚠️ Estás sobrecalificado para esta tarea`,
+        detalle: `Eres ${trabajadorActual.tipo} (Nivel ${nivelTrabajador}) pero esta tarea requiere nivel ${nivelRequerido} (Nivel ${nivelTarea}). Esto genera sobrecostos.`,
+        diferencia: diferencia
+      });
+    } else {
+      setShowAlertaSubutilizacion(false);
+    }
+  };
+  
+// ==================== PANTALLAS ====================
+  
+  // PANTALLA DE LOGIN
+  const LoginScreen = () => (
+    <div className="min-h-screen bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="bg-cyan-400 rounded-3xl shadow-2xl p-8 border-4 border-gray-800">
+          <div className="text-center mb-8">
+            <div className="inline-block bg-gray-800 rounded-full p-4 mb-4">
+              <div className="text-5xl text-white font-bold">⊂</div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">TERACONTA</h1>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Campo Usuario */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 uppercase">
+                Usuario
+              </label>
+              <input
+                ref={usuarioRef}
+                type="text"
+                placeholder="Escribe tu usuario"
+                defaultValue=""
+                autoComplete="username"
+                className="w-full px-4 py-3 rounded-lg border-0 bg-white text-gray-700 
+                         placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-600"
+              />
+            </div>
+            
+            {/* Campo Contraseña */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 uppercase">
+                Contraseña
+              </label>
+              <input
+                ref={passwordRef}
+                type="password"
+                placeholder="Escribe tu contraseña"
+                defaultValue=""
+                autoComplete="current-password"
+                className="w-full px-4 py-3 rounded-lg border-0 bg-white text-gray-700 
+                         placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-600"
+              />
+            </div>
+            
+            {/* Mensaje de Error */}
+            {loginError && (
+              <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                <p className="text-sm font-semibold">{loginError}</p>
+              </div>
+            )}
+            
+            {/* Checkbox Recordarme */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="recordarme"
+                checked={loginRecordarme}
+                onChange={(e) => setLoginRecordarme(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-gray-900 bg-white 
+                         checked:bg-cyan-600 checked:border-cyan-600 cursor-pointer"
+              />
+              <label htmlFor="recordarme" className="text-sm font-bold text-gray-900 cursor-pointer">
+                Recordarme
+              </label>
+            </div>
+            
+            {/* Botón Iniciar Sesión */}
+            <button
+              type="submit"
+              onClick={handleLogin}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white 
+                       py-4 rounded-xl font-bold text-lg shadow-lg
+                       transform transition-all duration-200 hover:scale-105 active:scale-95
+                       border-2 border-green-700"
+            >
+              Iniciar sesión
+            </button>
+            
+            {/* Link Olvidaste Contraseña */}
+            <div className="text-center">
+              <button
+                type="button"
+                className="text-sm font-semibold text-gray-900 hover:text-gray-700 
+                         transition-colors underline"
+                onClick={() => alert('Funcionalidad disponible próximamente')}
+              >
+                ¿Olvidaste la contraseña?
+              </button>
+            </div>
+          </form>
+          
+          {/* Indicador de Conexión */}
+          <div className="mt-6 pt-6 border-t-2 border-gray-900/20">
+            <div className="flex items-center justify-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${dbConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-xs font-semibold text-gray-900">
+                {dbConnected ? 'Conectado a base de datos' : 'Sin conexión'}
+              </span>
+            </div>
+            <p className="text-center text-xs text-gray-700 mt-2">v1.2.0</p>
+          </div>
+        </div>
+        
+        {/* Ayuda de Credenciales (Solo para testing) */}
+        <div className="mt-4 bg-white/90 rounded-xl p-4 text-xs">
+          <p className="font-bold text-gray-700 mb-2">Credenciales de prueba:</p>
+          <div className="space-y-1 text-gray-600">
+            <p>👷 <strong>carlos</strong> / 1234 (Peón)</p>
+            <p>👨‍🔧 <strong>jorge</strong> / 1234 (Ayudante)</p>
+            <p>👨‍🏭 <strong>andres</strong> / 1234 (Operario)</p>
+            <p>👨‍💼 <strong>miguel</strong> / 1234 (Supervisor)</p>
+            <p>👩‍💼 <strong>laura</strong> / 1234 (Supervisora)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // PANTALLA DE SELECCIÓN DE TRABAJADORES (Solo para Supervisores)
+  const SeleccionTrabajadoresScreen = () => (
+    <div className="min-h-screen bg-gray-100 pb-20">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 rounded-b-3xl shadow-lg">
+        {/* Nombre del Proyecto - Centrado */}
+        <div className="text-center mb-3">
+          <p className="font-semibold text-purple-200 uppercase">{currentProject.nombre}</p>
+        </div>
+        
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{currentUser.avatar}</div>
+            <div>
+              <p className="font-semibold">{currentUser.nombre}</p>
+              <p className="text-sm text-purple-200">{currentUser.tipo}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-purple-200">Modo Supervisor</p>
+          </div>
+        </div>
+        
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+          <p className="text-center text-sm">
+            Selecciona el trabajador para registrar sus tareas
+          </p>
+        </div>
+      </div>
+      
+      {/* Lista de Trabajadores */}
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Trabajadores Disponibles</h2>
+        <div className="space-y-3">
+          {TRABAJADORES_CAMPO.map(trabajador => (
+            <button
+              key={trabajador.id}
+              onClick={() => handleSelectWorker(trabajador)}
+              className="w-full flex items-center gap-4 p-4 bg-white rounded-xl 
+                       shadow-md hover:shadow-lg transition-all duration-200
+                       transform hover:scale-102 active:scale-98 border-2 border-gray-100
+                       hover:border-purple-400"
+            >
+              <div className="text-5xl">{trabajador.avatar}</div>
+              <div className="flex-1 text-left">
+                <p className="font-semibold text-gray-800 text-lg">{trabajador.nombre}</p>
+                <p className="text-sm text-gray-600">{trabajador.tipo}</p>
+              </div>
+              <div className="text-purple-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+  
+  // PANTALLA DE DISCIPLINAS (HOME)
+  const DisciplinasScreen = () => {
+    const stats = getStats();
+    
+    return (
+      <div className="min-h-screen bg-gray-100 pb-20">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-b-3xl shadow-lg">
+          {/* Nombre del Proyecto - Centrado */}
+          <div className="text-center mb-4">
+            <p className="font-semibold text-blue-200 uppercase">{currentProject.nombre}</p>
+          </div>
+          
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">{selectedWorker.avatar}</div>
+              <div>
+                <p className="font-semibold">{selectedWorker.nombre}</p>
+                <p className="text-sm text-blue-200">{selectedWorker.tipo}</p>
+                {currentUser.rol === 'supervisor' && (
+                  <p className="text-xs text-blue-300">Registrado por: {currentUser.nombre}</p>
+                )}
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-blue-200">Hoy</p>
+              <p className="font-semibold">{new Date().toLocaleDateString('es-CO', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+              })}</p>
+            </div>
+          </div>
+          
+          {/* Banner de Productividad */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm">Productividad</span>
+              <span className="text-2xl font-bold">{stats.productividadPct}%</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-3 mb-3">
+              <div 
+                className="bg-green-400 rounded-full h-3 transition-all duration-500"
+                style={{ width: `${stats.productividadPct}%` }}
+              ></div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="text-center">
+                <p className="text-blue-200">⏳ Esperas</p>
+                <p className="font-semibold">{formatDuration(stats.esperasSeconds)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-blue-200">🚪 Permisos</p>
+                <p className="font-semibold">{formatDuration(stats.permisosSeconds)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-blue-200">⏸️ Sin Tareas</p>
+                <p className="font-semibold">{formatDuration(stats.sinTareasSeconds)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Grid de Disciplinas */}
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Selecciona una Disciplina</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {DISCIPLINAS.map(disciplina => {
+              const tareas = TAREAS.filter(t => t.disciplinaId === disciplina.id);
+              
+              return (
+                <button
+                  key={disciplina.id}
+                  onClick={() => handleSelectDisciplina(disciplina)}
+                  className={`bg-gradient-to-br ${getColorClasses(disciplina.color)} 
+                           text-white p-6 rounded-2xl shadow-lg 
+                           transform transition-all duration-200 
+                           hover:scale-105 active:scale-95`}
+                >
+                  <div className="text-5xl mb-3">{disciplina.emoji}</div>
+                  <p className="font-bold text-lg mb-1">{disciplina.nombre}</p>
+                  <p className="text-xs opacity-90">{tareas.length} tareas</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // PANTALLA DE TAREAS
+  const TareasScreen = () => {
+    const tareas = TAREAS.filter(t => t.disciplinaId === selectedDisciplina.id);
+    
+    return (
+      <div className="min-h-screen bg-gray-100 pb-20">
+        {/* Header */}
+        <div className={`bg-gradient-to-r ${getColorClasses(selectedDisciplina.color)} text-white p-6`}>
+          {/* Nombre del Proyecto - Centrado */}
+          <div className="text-center mb-3">
+            <p className="font-semibold text-white/80 uppercase">{currentProject.nombre}</p>
+          </div>
+          
+          <button 
+            onClick={handleBack}
+            className="flex items-center gap-2 mb-4 text-white/80 hover:text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Volver</span>
+          </button>
+          <div className="flex items-center gap-4">
+            <div className="text-6xl">{selectedDisciplina.emoji}</div>
+            <div>
+              <h1 className="text-2xl font-bold">{selectedDisciplina.nombre}</h1>
+              <p className="text-sm text-white/80">{selectedDisciplina.descripcion}</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Lista de Tareas */}
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Selecciona una Tarea</h2>
+          <div className="space-y-3">
+            {tareas.map(tarea => {
+              const subtareas = SUBTAREAS.filter(s => s.tareaId === tarea.id);
+              
+              return (
+                <button
+                  key={tarea.id}
+                  onClick={() => handleSelectTarea(tarea)}
+                  className="w-full flex items-center gap-4 p-4 bg-white rounded-xl 
+                           shadow-md hover:shadow-lg transition-all duration-200
+                           transform hover:scale-102 active:scale-98"
+                >
+                  <div className="text-4xl">{tarea.emoji}</div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold text-gray-800">{tarea.nombre}</p>
+                    {subtareas.length > 0 && (
+                      <p className="text-sm text-gray-500">{subtareas.length} subtareas</p>
+                    )}
+                  </div>
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // PANTALLA DE SUBTAREAS
+  const SubtareasScreen = () => {
+    const subtareas = SUBTAREAS.filter(s => s.tareaId === selectedTarea.id);
+    
+    return (
+      <div className="min-h-screen bg-gray-100 pb-20">
+        {/* Header */}
+        <div className={`bg-gradient-to-r ${getColorClasses(selectedDisciplina.color)} text-white p-6`}>
+          {/* Nombre del Proyecto - Centrado */}
+          <div className="text-center mb-3">
+            <p className="font-semibold text-white/80 uppercase">{currentProject.nombre}</p>
+          </div>
+          
+          <button 
+            onClick={handleBack}
+            className="flex items-center gap-2 mb-4 text-white/80 hover:text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Volver</span>
+          </button>
+          <div className="flex items-center gap-4">
+            <div className="text-6xl">{selectedTarea.emoji}</div>
+            <div>
+              <p className="text-sm text-white/80">{selectedDisciplina.nombre}</p>
+              <h1 className="text-2xl font-bold">{selectedTarea.nombre}</h1>
+            </div>
+          </div>
+        </div>
+        
+        {/* Lista de Subtareas */}
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Selecciona una Subtarea</h2>
+          <div className="space-y-3">
+            {subtareas.map(subtarea => (
+              <button
+                key={subtarea.id}
+                onClick={() => handleSelectSubtarea(subtarea)}
+                className="w-full flex items-center gap-4 p-4 bg-white rounded-xl 
+                         shadow-md hover:shadow-lg transition-all duration-200
+                         transform hover:scale-102 active:scale-98"
+              >
+                <div className="text-4xl">{subtarea.emoji}</div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-gray-800">{subtarea.nombre}</p>
+                </div>
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+
+  // ⭐ v1.3.0 - Funciones para QR Scanner
+  const startQRScanner = () => {
+    setShowQRScanner(true);
+    setTimeout(() => {
+      const scanner = new Html5Qrcode("qr-reader");
+      setQrScanner(scanner);
+      
+      scanner.start(
+        { facingMode: "environment" }, // Cámara trasera
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+          // QR escaneado exitosamente
+          handleQRScan(decodedText, scanner);
+        },
+        (errorMessage) => {
+          // Error de escaneo (se ignora)
+        }
+      ).catch((err) => {
+        console.error("Error iniciando scanner:", err);
+        alert("Error al acceder a la cámara. Verifica los permisos.");
+        setShowQRScanner(false);
+      });
+    }, 100);
+  };
+  
+  const stopQRScanner = () => {
+    if (qrScanner) {
+      qrScanner.stop().then(() => {
+        qrScanner.clear();
+        setQrScanner(null);
+        setShowQRScanner(false);
+      }).catch((err) => {
+        console.error("Error deteniendo scanner:", err);
+      });
+    } else {
+      setShowQRScanner(false);
+    }
+  };
+  
+  const handleQRScan = (qrData, scanner) => {
+    try {
+      // Detener scanner
+      scanner.stop().then(() => scanner.clear());
+      setQrScanner(null);
+      setShowQRScanner(false);
+      
+      // Parsear QR Code
+      // Formato esperado: "PROJ_001|EDIF_1|PISO_20|APT_4"
+      // O formato JSON: {"nivel1":"Edificio 1","nivel2":"Piso 20","nivel3":"Apartamento 4"}
+      
+      let ubicacion = {};
+      
+      // Intentar parsear como JSON primero
+      if (qrData.startsWith('{')) {
+        ubicacion = JSON.parse(qrData);
+      } else {
+        // Parsear formato simple con separador |
+        const parts = qrData.split('|');
+        if (parts.length >= 2) {
+          ubicacion = {
+            nivel1: parts[1] || null,  // Edificio
+            nivel2: parts[2] || null,  // Piso
+            nivel3: parts[3] || null   // Apartamento
+          };
+        } else {
+          throw new Error("Formato QR inválido");
+        }
+      }
+      
+      // Actualizar ubicación seleccionada
+      setSelectedUbicacion({
+        nivel1: ubicacion.nivel1,
+        nivel2: ubicacion.nivel2,
+        nivel3: ubicacion.nivel3
+      });
+      
+      setQrScanSuccess({
+        message: "✅ Ubicación escaneada correctamente",
+        ubicacion: ubicacion
+      });
+      
+      // Limpiar mensaje después de 3 segundos
+      setTimeout(() => setQrScanSuccess(null), 3000);
+      
+    } catch (error) {
+      console.error("Error procesando QR:", error);
+      alert("❌ QR Code inválido. Por favor escanea un código válido.");
+      setShowQRScanner(false);
+    }
+  };
+
+  
+  // ⭐ v1.2.0 - PANTALLA DE UBICACIÓN
+  const UbicacionScreen = () => {
+    const config = getUbicacionesConfig(currentProject.id);
+    
+    if (!config || !config.activo) {
+      // Si no tiene ubicaciones, ir directo al cronómetro
+      React.useEffect(() => {
+        const disciplina = DISCIPLINAS.find(d => d.id === selectedTarea.disciplinaId);
+        setCurrentTask({
+          disciplina: disciplina,
+          tarea: selectedTarea,
+          subtarea: selectedSubtarea
+        });
+        setCurrentScreen('cronometro');
+      }, []);
+      return null;
+    }
+    
+    const handleNivel1Change = (value) => {
+      setSelectedUbicacion({
+        nivel1: value,
+        nivel2: null,
+        nivel3: null
+      });
+    };
+    
+    const handleNivel2Change = (value) => {
+      setSelectedUbicacion(prev => ({
+        ...prev,
+        nivel2: value,
+        nivel3: null
+      }));
+    };
+    
+    const handleNivel3Change = (value) => {
+      setSelectedUbicacion(prev => ({
+        ...prev,
+        nivel3: value
+      }));
+    };
+    
+    const canContinue = () => {
+      if (config.nivel3?.opciones) {
+        return selectedUbicacion.nivel1 && selectedUbicacion.nivel2 && selectedUbicacion.nivel3;
+      }
+      return selectedUbicacion.nivel1 && selectedUbicacion.nivel2;
+    };
+    
+    const handleContinuar = () => {
+      // Verificar subutilización antes de continuar
+      verificarSubutilizacion();
+      
+      // Configurar tarea con ubicación
+      const disciplina = DISCIPLINAS.find(d => d.id === selectedTarea.disciplinaId);
+      setCurrentTask({
+        disciplina: disciplina,
+        tarea: selectedTarea,
+        subtarea: selectedSubtarea,
+        ubicacion: selectedUbicacion
+      });
+      
+      setCurrentScreen('cronometro');
+      setElapsedSeconds(0);
+    };
+    
+    return (
+      <div className="min-h-screen bg-gray-100 pb-20">
+        {/* ⭐ v1.2.1 - Alerta de Subutilización */}
+        {showAlertaSubutilizacion && showAlertaSubutilizacion.mostrar && (
+          <div className="bg-yellow-400 border-b-4 border-yellow-600 p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5 text-yellow-900" />
+              <div className="flex-1">
+                <p className="font-bold text-yellow-900 text-base">{showAlertaSubutilizacion.mensaje}</p>
+                <p className="text-sm text-yellow-800 mt-1">{showAlertaSubutilizacion.detalle}</p>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAlertaSubutilizacion({ mostrar: false });
+                    console.log('✅ Alerta cerrada manualmente');
+                  }}
+                  className="mt-2 px-4 py-2 bg-yellow-900 text-white rounded font-semibold text-sm hover:bg-yellow-950"
+                >
+                  ✓ Entendido, continuar
+                </button>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAlertaSubutilizacion({ mostrar: false });
+                }}
+                className="text-yellow-900 hover:text-yellow-950"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Header */}
+        <div className={`bg-gradient-to-r ${getColorClasses(selectedDisciplina.color)} text-white p-6`}>
+          {/* Nombre del Proyecto */}
+          <div className="text-center mb-3">
+            <p className="font-semibold text-white/80 uppercase">{currentProject.nombre}</p>
+          </div>
+          
+          <button 
+            onClick={() => {
+              setCurrentScreen('subtareas');
+              setSelectedUbicacion({ nivel1: null, nivel2: null, nivel3: null });
+            }}
+            className="flex items-center gap-2 mb-4 text-white/80 hover:text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Volver</span>
+          </button>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-5xl">📍</div>
+            <div>
+              <p className="text-sm text-white/80">{selectedDisciplina.nombre} → {selectedTarea.nombre}</p>
+              <h1 className="text-2xl font-bold">Selecciona Ubicación</h1>
+              {selectedSubtarea && (
+                <p className="text-sm text-white/90">{selectedSubtarea.nombre}</p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Contenido */}
+        <div className="p-6">
+          {/* Breadcrumb */}
+          <div className="bg-white rounded-lg p-3 mb-4 shadow-sm">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-green-600 font-medium">✓ Disciplina</span>
+              <span className="text-gray-400">→</span>
+              <span className="text-green-600 font-medium">✓ Tarea</span>
+              <span className="text-gray-400">→</span>
+              <span className="text-blue-600 font-medium">📍 Ubicación</span>
+              <span className="text-gray-400">→</span>
+              <span className="text-gray-400">Timer</span>
+            </div>
+          </div>
+          
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded mb-4">
+            <p className="text-sm text-blue-800">
+              <strong>ℹ️ Información:</strong> Selecciona la ubicación donde realizarás esta tarea. Esto ayuda a controlar el avance por áreas.
+            </p>
+          </div>
+          
+          {/* ⭐ v1.3.0 - Mensaje de éxito de escaneo QR */}
+          {qrScanSuccess && (
+            <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded mb-4 animate-fadeIn">
+              <p className="text-sm text-green-800 font-semibold">
+                {qrScanSuccess.message}
+              </p>
+            </div>
+          )}
+          
+          {/* ⭐ v1.3.0 - Botón para escanear QR */}
+          <div className="mb-6">
+            <button
+              onClick={startQRScanner}
+              className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-4 rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-102 active:scale-98 transition-all"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              📷 Escanear Código QR
+            </button>
+          </div>
+          
+          {/* ⭐ v1.3.0 - Scanner QR */}
+          {showQRScanner && (
+            <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
+              {/* Header del scanner */}
+              <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">Escanea el Código QR</h2>
+                  <button
+                    onClick={stopQRScanner}
+                    className="bg-white/20 hover:bg-white/30 rounded-full p-2"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-sm text-white/80 mt-2">
+                  Centra el código QR en el recuadro para escanearlo
+                </p>
+              </div>
+              
+              {/* Área del scanner */}
+              <div className="flex-1 flex items-center justify-center p-4">
+                <div id="qr-reader" className="w-full max-w-md"></div>
+              </div>
+              
+              {/* Instrucciones */}
+              <div className="bg-white p-4">
+                <p className="text-center text-sm text-gray-600">
+                  💡 Asegúrate de tener buena iluminación
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Separador o texto */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-gray-100 text-gray-500 font-medium">O selecciona manualmente</span>
+            </div>
+          </div>
+          
+          {/* Nivel 1 */}
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {config.nivel1.nombre}
+            </label>
+            <select
+              value={selectedUbicacion.nivel1 || ''}
+              onChange={(e) => handleNivel1Change(e.target.value)}
+              className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none bg-white"
+            >
+              <option value="">Selecciona...</option>
+              {config.nivel1.opciones.map(opcion => (
+                <option key={opcion} value={opcion}>{opcion}</option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Nivel 2 */}
+          {selectedUbicacion.nivel1 && (
+            <div className="mb-4 animate-fadeIn">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {config.nivel2.nombre}
+              </label>
+              <select
+                value={selectedUbicacion.nivel2 || ''}
+                onChange={(e) => handleNivel2Change(e.target.value)}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none bg-white"
+              >
+                <option value="">Selecciona...</option>
+                {config.nivel2.opciones.map(opcion => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          {/* Nivel 3 */}
+          {selectedUbicacion.nivel1 && selectedUbicacion.nivel2 && config.nivel3?.opciones && (
+            <div className="mb-4 animate-fadeIn">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {config.nivel3.nombre}
+              </label>
+              <select
+                value={selectedUbicacion.nivel3 || ''}
+                onChange={(e) => handleNivel3Change(e.target.value)}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none bg-white"
+              >
+                <option value="">Selecciona...</option>
+                {config.nivel3.opciones.map(opcion => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          {/* Resumen */}
+          {canContinue() && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+              <p className="text-sm font-medium text-green-800 mb-2">✅ Ubicación seleccionada:</p>
+              <p className="text-lg font-bold text-green-900">
+                {selectedUbicacion.nivel1}
+                {selectedUbicacion.nivel2 && ` - ${selectedUbicacion.nivel2}`}
+                {selectedUbicacion.nivel3 && ` - ${selectedUbicacion.nivel3}`}
+              </p>
+            </div>
+          )}
+          
+          {/* Botón Continuar */}
+          <button
+            onClick={handleContinuar}
+            disabled={!canContinue()}
+            className={`w-full py-4 rounded-lg font-semibold text-lg transition-all ${
+              canContinue()
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-102 active:scale-98'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Continuar al Cronómetro →
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // PANTALLA DE CRONÓMETRO
+  const CronometroScreen = () => (
+    <div className="min-h-screen bg-gray-100 pb-20">
+      {/* ⭐ v1.2.0 - Alerta de Subutilización */}
+      {showAlertaSubutilizacion && showAlertaSubutilizacion.mostrar && (
+        <div className="bg-yellow-400 border-b-4 border-yellow-600 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5 text-yellow-900" />
+            <div className="flex-1">
+              <p className="font-bold text-yellow-900 text-base">{showAlertaSubutilizacion.mensaje}</p>
+              <p className="text-sm text-yellow-800 mt-1">{showAlertaSubutilizacion.detalle}</p>
+              <button
+                onClick={() => setShowAlertaSubutilizacion(false)}
+                className="mt-2 text-sm underline font-semibold text-yellow-900 hover:text-yellow-950"
+              >
+                Entendido, continuar →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Header */}
+      <div className={`bg-gradient-to-r ${getColorClasses(currentTask.disciplina.color)} text-white p-6`}>
+        {/* Nombre del Proyecto - Centrado */}
+        <div className="text-center mb-3">
+          <p className="font-semibold text-white/80 uppercase">{currentProject.nombre}</p>
+        </div>
+        
+        <button 
+          onClick={handleBack}
+          className="flex items-center gap-2 mb-4 text-white/80 hover:text-white"
+          disabled={timerRunning}
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Volver</span>
+        </button>
+        <div className="text-center">
+          <div className="text-7xl mb-4">
+            {currentTask.subtarea?.emoji || currentTask.tarea.emoji}
+          </div>
+          <p className="text-sm text-white/80">{currentTask.disciplina.nombre}</p>
+          <h1 className="text-2xl font-bold mb-1">{currentTask.tarea.nombre}</h1>
+          {currentTask.subtarea && (
+            <p className="text-lg text-white/90">{currentTask.subtarea.nombre}</p>
+          )}
+        </div>
+      </div>
+      
+      {/* Timer */}
+      <div className="p-8">
+        <div className="bg-white rounded-3xl shadow-2xl p-12 text-center">
+          <p className="text-sm text-gray-500 mb-4 uppercase tracking-wide">
+            {timerRunning ? 'Tarea en Progreso' : 'Listo para Iniciar'}
+          </p>
+          <div className="text-7xl font-mono font-bold text-gray-800 mb-8">
+            {formatTime(elapsedSeconds)}
+          </div>
+          
+          {!timerRunning ? (
+            <button
+              onClick={handleStartTask}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white 
+                       py-6 rounded-2xl font-bold text-xl shadow-lg
+                       transform transition-all duration-200 hover:scale-105 active:scale-95
+                       flex items-center justify-center gap-3"
+            >
+              <Play className="w-8 h-8" />
+              INICIAR TAREA
+            </button>
+          ) : (
+            <button
+              onClick={handleFinishTask}
+              className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white 
+                       py-6 rounded-2xl font-bold text-xl shadow-lg
+                       transform transition-all duration-200 hover:scale-105 active:scale-95
+                       flex items-center justify-center gap-3"
+            >
+              <Square className="w-8 h-8" />
+              FINALIZAR TAREA
+            </button>
+          )}
+          
+          {timerRunning && (
+            <div className="mt-6 flex items-center justify-center gap-2 text-green-600">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-semibold">Guardando en tiempo real...</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+  
+  // PANTALLA DE RESUMEN
+  const ResumenScreen = () => {
+    const stats = getStats();
+    
+    return (
+      <div className="min-h-screen bg-gray-100 pb-20">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-b-3xl">
+          {/* Nombre del Proyecto - Centrado */}
+          <div className="text-center mb-3">
+            <p className="font-semibold text-blue-200 uppercase">{currentProject.nombre}</p>
+          </div>
+          
+          <h1 className="text-2xl font-bold mb-2">Resumen del Día</h1>
+          <p className="text-blue-200">{new Date().toLocaleDateString('es-CO', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</p>
+        </div>
+        
+        {/* Tarjetas Principales */}
+        <div className="p-6 grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-2xl shadow-lg">
+            <CheckCircle className="w-8 h-8 mb-2" />
+            <p className="text-sm mb-1">Productivo</p>
+            <p className="text-4xl font-bold mb-1">{stats.productividadPct}%</p>
+            <p className="text-sm opacity-90">{formatDuration(stats.productivoSeconds)}</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-2xl shadow-lg">
+            <AlertCircle className="w-8 h-8 mb-2" />
+            <p className="text-sm mb-1">Improductivo</p>
+            <p className="text-4xl font-bold mb-1">{100 - stats.productividadPct}%</p>
+            <p className="text-sm opacity-90">{formatDuration(stats.improductivoSeconds)}</p>
+          </div>
+        </div>
+        
+        {/* Desglose Improductivo */}
+        <div className="px-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Desglose Tiempo Improductivo</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">⏳</div>
+                <span className="font-semibold text-gray-700">Esperas</span>
+              </div>
+              <span className="font-bold text-gray-800">{formatDuration(stats.esperasSeconds)}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">🚪</div>
+                <span className="font-semibold text-gray-700">Permisos</span>
+              </div>
+              <span className="font-bold text-gray-800">{formatDuration(stats.permisosSeconds)}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">⏸️</div>
+                <span className="font-semibold text-gray-700">Sin Tareas</span>
+              </div>
+              <span className="font-bold text-gray-800">{formatDuration(stats.sinTareasSeconds)}</span>
+            </div>
+            
+            <div className="border-t-2 pt-4 flex items-center justify-between">
+              <span className="font-bold text-gray-900 text-lg">TOTAL IMPRODUCTIVO</span>
+              <span className="font-bold text-red-600 text-xl">
+                {formatDuration(stats.improductivoSeconds)}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Gráfico Simple */}
+        <div className="px-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Comparativa</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">Productivo</span>
+                  <span className="text-sm font-bold text-green-600">{stats.productividadPct}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-green-600 rounded-full h-4"
+                    style={{ width: `${stats.productividadPct}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">Improductivo</span>
+                  <span className="text-sm font-bold text-red-600">{100 - stats.productividadPct}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div 
+                    className="bg-gradient-to-r from-red-500 to-red-600 rounded-full h-4"
+                    style={{ width: `${100 - stats.productividadPct}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // PANTALLA DE LISTA
+  const ListaScreen = () => (
+    <div className="min-h-screen bg-gray-100 pb-20">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-b-3xl">
+        {/* Nombre del Proyecto - Centrado */}
+        <div className="text-center mb-3">
+          <p className="font-semibold text-blue-200 uppercase">{currentProject.nombre}</p>
+        </div>
+        
+        <h1 className="text-2xl font-bold mb-2">Registro del Día</h1>
+        <p className="text-blue-200">{taskRecords.length} tareas registradas</p>
+      </div>
+      
+      {/* Lista de Tareas */}
+      <div className="p-6">
+        {taskRecords.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📋</div>
+            <p className="text-gray-500">No hay tareas registradas aún</p>
+            <p className="text-sm text-gray-400 mt-2">Comienza registrando tu primera tarea</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {[...taskRecords].reverse().map((record, index) => (
+              <div
+                key={record.id}
+                className="bg-white rounded-xl shadow-md p-4"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">{record.disciplinaEmoji}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {record.esProductiva ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                          ✅ Productivo
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded">
+                          ⚠️ Improductivo
+                        </span>
+                      )}
+                      {record.isSinTareas && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded">
+                          Auto-detectado
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-semibold text-gray-800">{record.tareaNombre}</p>
+                    {record.subtareaNombre && (
+                      <p className="text-sm text-gray-600">{record.subtareaNombre}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">{record.disciplinaNombre}</p>
+                    {/* ⭐ v1.2.0 - Mostrar ubicación */}
+                    {record.ubicacion && record.ubicacion.nivel1 && (
+                      <p className="text-xs text-blue-600 mt-1 font-medium">
+                        📍 {record.ubicacion.nivel1}
+                        {record.ubicacion.nivel2 && ` - ${record.ubicacion.nivel2}`}
+                        {record.ubicacion.nivel3 && ` - ${record.ubicacion.nivel3}`}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                      <span>⏰ {new Date(record.startTime).toLocaleTimeString('es-CO', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}</span>
+                      <span className="font-semibold text-blue-600">
+                        {formatDuration(record.duration)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  
+  // ==================== BOTTOM NAVIGATION ====================
+  
+  const BottomNav = () => (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg">
+      <div className="flex justify-around items-center h-16">
+        <button
+          onClick={() => handleBottomNav('home')}
+          className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+            bottomNav === 'home' ? 'text-blue-600' : 'text-gray-400'
+          }`}
+        >
+          <Home className="w-6 h-6 mb-1" />
+          <span className="text-xs font-semibold">Inicio</span>
+        </button>
+        
+        <button
+          onClick={() => handleBottomNav('resumen')}
+          className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+            bottomNav === 'resumen' ? 'text-blue-600' : 'text-gray-400'
+          }`}
+        >
+          <BarChart2 className="w-6 h-6 mb-1" />
+          <span className="text-xs font-semibold">Resumen</span>
+        </button>
+        
+        <button
+          onClick={() => handleBottomNav('lista')}
+          className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+            bottomNav === 'lista' ? 'text-blue-600' : 'text-gray-400'
+          }`}
+        >
+          <List className="w-6 h-6 mb-1" />
+          <span className="text-xs font-semibold">Lista</span>
+        </button>
+      </div>
+    </div>
+  );
+  
+  // ==================== RENDER PRINCIPAL ====================
+  
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      {currentScreen === 'login' && <LoginScreen />}
+      {currentScreen === 'seleccion-trabajadores' && <SeleccionTrabajadoresScreen />}
+      {currentScreen === 'disciplinas' && <DisciplinasScreen />}
+      {currentScreen === 'tareas' && <TareasScreen />}
+      {currentScreen === 'subtareas' && <SubtareasScreen />}
+      {currentScreen === 'ubicacion' && <UbicacionScreen />} {/* ⭐ v1.2.0 */}
+      {currentScreen === 'cronometro' && <CronometroScreen />}
+      {currentScreen === 'resumen' && <ResumenScreen />}
+      {currentScreen === 'lista' && <ListaScreen />}
+      
+      {currentScreen !== 'login' && currentScreen !== 'cronometro' && currentScreen !== 'seleccion-trabajadores' && currentScreen !== 'ubicacion' && <BottomNav />} {/* ⭐ v1.2.0 */}
+    </div>
+  );
+}
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(TeracontaMobileApp));
+    </script>
+</body>
+</html>
